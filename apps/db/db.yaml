@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+data:
+  password: cGFzc3dvcmQ=
+  username: Z3JhcGhfdXNlcg==
+kind: Secret
+metadata:
+  name: postgres-config
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: graph
+spec:
+  instances: 1
+  primaryUpdateStrategy: unsupervised
+  storage:
+    size: 10Gi
+    storageClass: standard
+  bootstrap:
+    initdb:
+      database: graph
+      owner: graph_user
+      secret:
+        name: postgres-config
+  managed:
+    roles:
+      - name: graph_user
+        ensure: present
+        comment: Graph user
+        login: true
+        superuser: true
+        inRoles:
+          - pg_monitor
+          - pg_signal_backend
+        passwordSecret:
+          name: postgres-config
